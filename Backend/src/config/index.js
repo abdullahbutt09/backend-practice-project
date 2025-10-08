@@ -4,4 +4,8 @@ const accessTokenExpiry = process.env.ACCESS_TOKEN_EXPIRY;
 const refreshToken = process.env.REFRESH_TOKEN_SECRET;
 const refreshTokenExpiry = process.env.REFRESH_TOKEN_EXPIRY;
 
-export { accessToken, accessTokenExpiry, refreshToken, refreshTokenExpiry };
+const cloudinary_name = process.env.CLOUDINARY_CLOUD_NAME;
+const cloud_api_key = process.env.CLOUDINARY_API_KEY;
+const cloud_api_secret = process.env.CLOUDINARY_API_SECRET;
+
+export { accessToken, accessTokenExpiry, refreshToken, refreshTokenExpiry, cloudinary_name, cloud_api_key, cloud_api_secret };
