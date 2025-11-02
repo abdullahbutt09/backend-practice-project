@@ -23,4 +23,14 @@ app.use(express.static("public"));
 app.use(cookieParser({
     //you can explore more options here https://www.npmjs.com/package/cookie-parser
 }))
+
+// routes import
+
+import router from './routes/user.routes.js';
+
+// routes declaration
+
+app.use("/api/v1/users", router)
+
+
 export default app;

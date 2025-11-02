@@ -8,4 +8,6 @@ const cloudinary_name = process.env.CLOUDINARY_CLOUD_NAME;
 const cloud_api_key = process.env.CLOUDINARY_API_KEY;
 const cloud_api_secret = process.env.CLOUDINARY_API_SECRET;
 
-export { accessToken, accessTokenExpiry, refreshToken, refreshTokenExpiry, cloudinary_name, cloud_api_key, cloud_api_secret };
+const PORT = process.env.PORT || 5000;
+
+export { accessToken, accessTokenExpiry, refreshToken, refreshTokenExpiry, cloudinary_name, cloud_api_key, cloud_api_secret, PORT };
