@@ -10,3 +10,5 @@ class apiResponse {
         this.success = statusCode < 400; //read about it server status codes overview
     }
 }
+
+export default apiResponse;
