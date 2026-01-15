@@ -20,6 +20,8 @@ const registerUser = asyncHandler( async (req, res) => {
     // return ? response : otherwise error response return
 
     const {username, email, fullName, password} = req.body;
+    console.log("study this also request.body"  , req.body);
+    
     
     // if(fullName === "")
     // {
@@ -32,7 +34,7 @@ const registerUser = asyncHandler( async (req, res) => {
         // check for email validation @ using include in production there is separate file where we make validation methods 
     }
 
-    const existedUser = User.findOne({
+    const existedUser = await User.findOne({
         $or : [{ username }, { email }]
     })
 
@@ -42,10 +44,19 @@ const registerUser = asyncHandler( async (req, res) => {
     }
 
     const avatarLocalPath = req.files?.avatar[0]?.path;
-    const coverImageLocalPath = req.files?.coverImage[0]?.path;
+    const coverImageLocalPath = req.files?.coverImage?.[0]?.path;
+
+    // let coverImageLocalPath;
+
+    // if(req.files && Array.isArray(req.files.coverImage) && req.files.coverImage.length > 0)
+    // {
+    //     coverImageLocalPath = req.files.coverImage[0].path
+    // }
+
+    console.log("check this also please " , req.files);    
 
     if (!avatarLocalPath) {
-        throw new apiError(400, "Avatar file is required");
+        throw new apiError(400, "Avatar local file path is required");
     }
 
     const avatar = await uploadOnCloudinary(avatarLocalPath);
@@ -53,13 +64,13 @@ const registerUser = asyncHandler( async (req, res) => {
 
     if(!avatar)
     {
-        throw new apiError(400, "Avatar file is required");
+        throw new apiError(400, "Avatar upload failed on cloudinary!");
     }
 
     const user = await User.create({
         fullName,
-        avatar: avatar.url,
-        coverImage: coverImage?.url || "",
+        avatar: avatar.secure_url,
+        coverImage: coverImage?.secure_url || "",
         email,
         password,
         username: username.toLowerCase()
