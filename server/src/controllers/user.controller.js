@@ -108,37 +108,44 @@ const registerUser = asyncHandler( async (req, res) => {
 })
 
 const loginUser = asyncHandler(async (req, res) => {
-    const { username, email, password } = req.body;
+    const { username, email, password } = req.body; // extracting all data from req.body for more information isko console karke dekh lena!
 
-    if(!username || !email)
+    if(!username || !email) // if user dont provide us username or email then throw error!
     {
         throw new apiError(400, "username or email is required!");
     }
 
     const user = await User.findOne({
-        $or: [{username}, {email}]
+        $or: [{username}, {email}] // finding user via email or username if exist in db
     })
 
-    if(!user)
+    if(!user) // if user dont exsit throw error response
     {
         throw new apiError(404, "User don't exist!");
     }
 
-    const isPasswordValid = await user.isPasswordCorrect(password);
+    //At this point the user exist now check his/her password
+
+    const isPasswordValid = await user.isPasswordCorrect(password); // checking password valid or not!
     
-    if(!isPasswordValid)
+    if(!isPasswordValid) // if password is not valid throw error incorrect password!
     {
         throw new apiError(401, "Password is incorrect!")
     }
 
-    const { accessToken, refreshToken } = await generate_access_refresh_tokens(user._id);
+    //At this point username or email && password is correct 
 
-    const loggedInUser = await User.findById(user._id).select("-password -refreshToken")
+    const { accessToken, refreshToken } = await generate_access_refresh_tokens(user._id); 
+    // generate access and refresh token via method if username email password is correct
+
+    const loggedInUser = await User.findById(user._id).select("-password -refreshToken"); // might be expensive database call operation which you will decide is it expensive or not!
 
     const optionsForCookies = {
         httpOnly: true,
         secure: true
-    }
+    } // these options -> optionsForCookies
+
+    // With the above cookies options the cookies are only modifiable on server side!
 
     return res.
     status(200).
@@ -153,11 +160,15 @@ const loginUser = asyncHandler(async (req, res) => {
 
             "User Logged In Successfully!"
         )
-    );
-
+    ); // send a json {} response with access and refresh token with loggedIn user object and a message also user logged in successfully!    
 })
+
+ const logOutUser = asyncHandler( async(req, res) => {
+
+ })
 
 export { 
     registerUser,
-    loginUser
+    loginUser,
+    logOutUser
 };
