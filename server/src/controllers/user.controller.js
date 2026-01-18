@@ -147,11 +147,11 @@ const loginUser = asyncHandler(async (req, res) => {
 
     // With the above cookies options the cookies are only modifiable on server side!
 
-    return res.
-    status(200).
-    cookie("acessToken", accessToken, optionsForCookies).
-    cookie("refreshToken", refreshToken, optionsForCookies).
-    json(
+    return res
+    .status(200)
+    .cookie("acessToken", accessToken, optionsForCookies)
+    .cookie("refreshToken", refreshToken, optionsForCookies)
+    .json(
         new apiResponse(
             200,
             {
@@ -163,9 +163,38 @@ const loginUser = asyncHandler(async (req, res) => {
     ); // send a json {} response with access and refresh token with loggedIn user object and a message also user logged in successfully!    
 })
 
- const logOutUser = asyncHandler( async(req, res) => {
+const logOutUser = asyncHandler( async(req, res) => {
 
- })
+    User.findByIdAndUpdate(
+        req.user._id,
+        {
+            $set: {
+                refreshToken: undefined
+            }
+        },
+
+        {
+            new: true
+        }
+    )
+
+    const optionsForCookies = {
+        httpOnly: true,
+        secure: true
+    }
+    
+    return res
+    .status(200)
+    .clearCookie("refreshToken", optionsForCookies)
+    .clearCookie("accessToken", optionsForCookies)
+    .json(
+        new apiResponse(
+            200,
+            {},
+            "User Logged Out!"
+        )
+    )
+})
 
 export { 
     registerUser,
