@@ -251,7 +251,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 const changeCurrentUserPassword = asyncHandler(async (req, res) => {
     const { oldPassword, NewPasssword } = req.body;
 
-    const user = await User.findById(req.user._id);
+    const user = await User.findById(req.user?._id);
 
     const is_Password_Correct = await user.isPasswordCorrect(oldPassword);
 
@@ -273,9 +273,52 @@ const changeCurrentUserPassword = asyncHandler(async (req, res) => {
     ))
 })
 
+const getCurrentUser = asyncHandler(async (req, res) => {
+    return res
+    .status(200)
+    .json(200, req.user, "user fetched successfully!");
+})
+
+const upateAccountDetails = asyncHandler(async (req, res) => {
+    const { fullName, email } = req.body;
+
+    if(!fullName || !email)
+    {
+        throw new apiError(400, "Invalid fullname and Email!");
+    }
+
+    const user = await User.findByIdAndUpdate(
+        req.user?._id,
+        {
+            $set: {
+                fullName,
+                email
+            }
+        },
+
+        {
+            new: true
+        }
+    ).select("-password");
+
+    return res
+    .status(200)
+    .json(new apiResponse(
+        200,
+        user,
+        "Account details updated successfully!"
+    ))
+})
+
+const updateUserAvatar = asyncHandler(async (req, res) =>{
+
+})
 export { 
     registerUser,
     loginUser,
     logOutUser,
-    refreshAccessToken
+    refreshAccessToken,
+    changeCurrentUserPassword,
+    getCurrentUser,
+    upateAccountDetails
 };
