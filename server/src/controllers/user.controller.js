@@ -1,7 +1,7 @@
 import asyncHandler from "../utils/asyncHandlerPromise.js";
 import apiError from "../utils/apiError.js";
 import { User } from "../models/user.models.js";
-import uploadOnCloudinary from "../utils/Cloudinary.js";
+import { deleteFromCloudinary, uploadOnCloudinary } from "../utils/Cloudinary.js";
 import apiResponse from "../utils/apiResponse.js";
 import jwt from "jsonwebtoken"
 import { refreshToken } from "../config/index.js";
@@ -89,6 +89,7 @@ const registerUser = asyncHandler( async (req, res) => {
     const user = await User.create({
         fullName,
         avatar: avatar.secure_url,
+        avatarPublicId: avatar.public_id,
         coverImage: coverImage?.secure_url || "",
         email,
         password,
@@ -318,17 +319,22 @@ const updateUserAvatar = asyncHandler(async (req, res) =>{
         throw new apiError(400, "Error Avatar file is missing!");
     }
 
-    const avatar = await uploadOnCloudinary(avatar?.url);
+    const currentUser = await User.findById(req.user?._id);
     
-    if(avatar?.url)
+    const getOldAvatarId = currentUser?.avatarPublicId;
+
+    const avatar = await uploadOnCloudinary(avatarLocalPath);
+    
+    if(!avatar?.secure_url)
     {
-        throw new apiError(400, "Error in uploading avatar on cloudinary!");
+        throw new apiError(500, "Error in uploading new avatar on cloudinary!");
     }
 
-    const user = await User.findByIdAndUpdate(
+    const updatedUser = await User.findByIdAndUpdate(
         req.user?._id, 
         {
-            avatar: avatar?.url
+            avatar: avatar?.secure_url,
+            avatarPublicId: avatar?.public_id
         },
 
         {
@@ -336,11 +342,15 @@ const updateUserAvatar = asyncHandler(async (req, res) =>{
         }
     ).select("-password");
 
+    if (getOldAvatarId) {
+        await deleteFromCloudinary(getOldAvatarId);
+    }
+
     return res
     .status(200)
     .json(new apiResponse(
         200,
-        user,
+        updatedUser,
         "Avatar Image updated successfully!"
     ))
 })
