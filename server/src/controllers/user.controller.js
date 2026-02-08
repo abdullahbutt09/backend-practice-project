@@ -89,13 +89,20 @@ const registerUser = asyncHandler( async (req, res) => {
 
     const user = await User.create({
         fullName,
-        avatar: avatar.secure_url,
-        avatarPublicId: avatar.public_id,
-        coverImage: coverImage?.secure_url || "",
+        avatar: {
+            url: avatar.secure_url,
+            publicId: avatar.public_id
+        },
+        coverImage: coverImage
+            ? {
+                url: coverImage.secure_url,
+                publicId: coverImage.public_id
+            }
+            : undefined,
         email,
         password,
         username: username.toLowerCase()
-    })
+    });
 
     const createdUser = await User.findById(user._id).select(
         "-password -refreshToken"
@@ -278,7 +285,11 @@ const changeCurrentUserPassword = asyncHandler(async (req, res) => {
 const getCurrentUser = asyncHandler(async (req, res) => {
     return res
     .status(200)
-    .json(200, req.user, "user fetched successfully!");
+    .json(new apiResponse(
+        200,
+        req?.user,
+        "user fetched successfully!"
+    ));
 })
 
 const upateAccountDetails = asyncHandler(async (req, res) => {
@@ -320,9 +331,14 @@ const updateUserAvatar = asyncHandler(async (req, res) =>{
         throw new apiError(400, "Error Avatar file is missing!");
     }
 
-    const currentUser = await User.findById(req.user?._id);
+    const currentUser = await User.findById(req.user?._id).select("avatar");
+
+    if(!currentUser)
+    {
+        throw new apiError(404, "User not found!");
+    }
     
-    const getOldAvatarId = currentUser?.avatarPublicId;
+    const getOldAvatarId = currentUser?.avatar.publicId;
 
     const avatar = await uploadOnCloudinary(avatarLocalPath);
     
@@ -334,14 +350,18 @@ const updateUserAvatar = asyncHandler(async (req, res) =>{
     const updatedUser = await User.findByIdAndUpdate(
         req.user?._id, 
         {
-            avatar: avatar?.secure_url,
-            avatarPublicId: avatar?.public_id
+            avatar:
+            {
+                url: avatar?.secure_url,
+                publicId: avatar?.public_id
+            }
         },
 
         {
             new: true
         }
-    ).select("-password");
+
+    ).select("-password -refreshToken");
 
     if (getOldAvatarId) {
         await deleteFromCloudinary(getOldAvatarId);
@@ -364,29 +384,40 @@ const updateUserCoverImage = asyncHandler(async (req, res) =>{
         throw new apiError(400, "Error coverImage file is missing!");
     }
 
-    const coverImage = await uploadOnCloudinary(coverImage?.url);
+    const currentUser = await User.findById(req.user?._id).select("coverImage");
+    const oldCoverImage_PublicId = currentUser.coverImage?.publicId;
+
+    const coverImage = await uploadOnCloudinary(coverImageLocalPath);
     
-    if(coverImage?.url)
+    if(!coverImage?.secure_url)
     {
         throw new apiError(400, "Error in uploading coverImage on cloudinary!");
     }
 
-    const user = await User.findByIdAndUpdate(
+    const updatedUser = await User.findByIdAndUpdate(
         req.user?._id, 
         {
-            coverImage: coverImage?.url
+            coverImage:
+            {
+                url: coverImage?.secure_url,
+                publicId: coverImage?.public_id
+            }
         },
 
         {
             new: true
         }
-    ).select("-password");
+    ).select("-password -refreshToken");
+
+    if (oldCoverImage_PublicId) {
+        await deleteFromCloudinary(oldCoverImage_PublicId);
+    }
 
     return res
     .status(200)
     .json(new apiResponse(
         200,
-        user,
+        updatedUser,
         "Cover Image updated successfully!"
     ))
 })
