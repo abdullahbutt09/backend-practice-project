@@ -10,7 +10,7 @@ export const verifyJWT = asyncHandler(async (req, res, next) => {
     
         if(!token)
         {
-            throw new apiError(401, "un-authorized request!!!");
+            throw new apiError(401, "unauthorized request! User must be logged in to perform action!");
         }
     
         const decodedToken = jwt.verify(token, accessToken);
