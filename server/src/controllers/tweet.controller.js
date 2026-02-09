@@ -43,7 +43,25 @@ const createTweet = asyncHandler(async (req, res) => {
 
 const getUserTweets = asyncHandler(async (req, res) => {
     // TODO: get user tweets
-})
+
+    // find user ?
+
+    const user = await User.findById(req.user?._id);
+
+    if (!user) {
+        throw new apiError(401, "User not logged in or does not exist!");
+    }
+
+    const tweets = await Tweet.find({ owner: user._id }).sort({ createdAt: -1}).lean();
+
+    return res
+    .status(200)
+    .json(new apiResponse(
+        200,
+        tweets,
+        "Tweets fetched successfully!"
+    ))
+});
 
 const updateTweet = asyncHandler(async (req, res) => {
     //TODO: update tweet
