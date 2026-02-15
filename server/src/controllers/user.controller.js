@@ -435,7 +435,7 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
         {
             $match: 
             {
-                username: username?.lowercase()
+                username: username?.toLowerCase()
             }
         },
 
@@ -476,7 +476,7 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
                 {
                     $cond:
                     {
-                        if:{$in: [req.user?._id, "subscribers.subscriber"]},
+                        if:{$in: [req.user?._id, ["subscribers.subscriber"]]},
                         then: true,
                         else: false
                     }
