@@ -17,11 +17,9 @@ const videoSchema = new Schema({
     thumbnail: {
         url: {
             type: String,
-            required: true
         },
         publicId: {
             type: String,
-            required: true
         }
     },
   
