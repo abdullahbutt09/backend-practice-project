@@ -255,14 +255,14 @@ const deleteVideo = asyncHandler(async (req, res) => {
         videos.map(video => {
         const deletes = [];
 
-        if (video.videoFile?.publicId)
+        if (video?.videoFile?.publicId)
             deletes.push(
-            deleteFromCloudinary(video.videoFile?.publicId)
+            deleteFromCloudinary(video.videoFile?.publicId, "video")
         );
 
-        if (video.thumbnail?.publicId)
+        if (video?.thumbnail?.publicId)
             deletes.push(
-            deleteFromCloudinary(video.thumbnail?.publicId)
+            deleteFromCloudinary(video.thumbnail?.publicId, "image")
         );
 
             return Promise.all(deletes);

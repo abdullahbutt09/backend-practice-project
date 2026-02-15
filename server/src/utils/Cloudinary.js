@@ -18,9 +18,9 @@ const uploadOnCloudinary = async (localFilePath) => {
         if(!localFilePath) return null;
 
         const response = await cloudinary.uploader.upload(localFilePath, {resource_type: "auto"})
-        console.log("file uploaded successfully on cloudinary" , response.url);
+
         fs.unlinkSync(localFilePath);
-        console.log("study this cloudinary response", response)
+        
         return response;
     } catch (error) {
         fs.unlinkSync(localFilePath) // remove the locally saved temporary file as the upload operation got failed.
@@ -28,15 +28,16 @@ const uploadOnCloudinary = async (localFilePath) => {
     }
 }
 
-const deleteFromCloudinary = async (public_id) => {
+const deleteFromCloudinary = async (public_id, resourceType = "image") => {
     try {
         if (!public_id) {
             throw new apiError(400, "Invalid public_id at server side of the file to be deleted!");
         }
 
-        const response = await cloudinary.uploader.destroy(public_id);
-
-        if (response?.result !== "ok") {
+        const response = await cloudinary.uploader.destroy(public_id, { resource_type: resourceType });
+        
+        if (response?.result !== "ok" && response?.result !== "not found") 
+        {
             throw new apiError(500, "Cloudinary failed to delete image");
         }
 
