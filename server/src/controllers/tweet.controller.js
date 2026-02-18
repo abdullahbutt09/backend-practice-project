@@ -89,7 +89,7 @@ const updateTweet = asyncHandler(async (req, res) => {
         {
             $set:
             {
-                content: updatedTweetContent
+                content: updatedTweetContent.trim()
             }
         },
 
