@@ -1,4 +1,4 @@
-import mongoose from "mongoose"
+import mongoose, {isValidObjectId} from "mongoose"
 import { Comment } from "../models/comment.models.js"
 import { Video } from "../models/video.models.js";
 import { User } from "../models/user.models.js";
@@ -7,14 +7,54 @@ import apiResponse from "../utils/apiResponse.js";
 import asyncHandler from "../utils/asyncHandlerPromise.js";
 
 const getVideoComments = asyncHandler(async (req, res) => {
-    //TODO: get all comments for a video
-    const {videoId} = req.params
-    const {page = 1, limit = 10} = req.query
 
+    const { videoId } = req.params;
+    const {page = 1, limit = 10} = req.query;
+
+    if(!isValidObjectId(videoId))
+    {
+        throw new apiError(400, "Invalid video id!");
+    }
+
+    const pageNumber = Number(page);
+    const limitNumber = Number(limit);
+
+    if(pageNumber < 1 || limitNumber < 1)
+    {
+        throw new apiError(400, "Page and limit must be greater than 0");
+    }
+
+    if (isNaN(pageNumber) || isNaN(limitNumber)) 
+    {
+        throw new apiError(400, "Page and limit must be numbers");
+    }
+
+    const skip = (pageNumber - 1) * limitNumber;
+
+    const comments = await Comment.find({ video: videoId }).sort({ createdAt: -1 }).skip(skip).limit(limitNumber);
+
+    const totalComments = await Comment.countDocuments({ video: videoId });
+    const totalPages = Math.ceil(totalComments / limitNumber);
+
+    return res
+    .status(200)
+    .json(
+        new apiResponse(
+            200,
+            {
+                comments,
+                page: pageNumber,
+                limit: limitNumber,
+                totalComments,
+                totalPages
+            },
+            "comments fetched successfully"
+        )
+    )
 })
 
 const addComment = asyncHandler(async (req, res) => {
-    // TODO: add a comment to a video
+
     const user = req.user._id;
 
     if(!user)
@@ -56,7 +96,6 @@ const addComment = asyncHandler(async (req, res) => {
 })
 
 const updateComment = asyncHandler(async (req, res) => {
-    // TODO: update a comment
 
     const { updatedCommentContent } = req.body;
     const { commentId } = req.params;
