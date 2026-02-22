@@ -7,9 +7,89 @@ import asyncHandler from "../utils/asyncHandlerPromise.js"
 import { uploadOnCloudinary, deleteFromCloudinary } from "../utils/Cloudinary.js"
 
 const getAllVideos = asyncHandler(async (req, res) => {
-    const { page = 1, limit = 10, query, sortBy, sortType, userId } = req.query
-    //TODO: get all videos based on query, sort, pagination
-})
+    const { page = 1, limit = 10, query, sortBy, sortType, userId } = req.query;
+
+    if (!req.user?._id) {
+        throw new apiError(401, "Unauthorized");
+    }
+
+    const pageNumber = Number(page);
+    const limitNumber = Number(limit);
+
+    if (pageNumber < 1 || limitNumber < 1) {
+        throw new apiError(400, "Page and limit must be greater than 0");
+    }
+
+    // ✅ filter
+    const match = { isPublished: true };
+
+    if (userId && isValidObjectId(userId)) {
+        match.owner = new mongoose.Types.ObjectId(userId);
+    }
+
+    if (query) {
+        match.$or = [
+            { title: { $regex: query, $options: "i" } },
+            { description: { $regex: query, $options: "i" } }
+        ];
+    }
+
+    // ✅ sort (safe)
+    const allowedSortFields = ["createdAt", "views", "duration", "title"];
+    const sortField = allowedSortFields.includes(sortBy) ? sortBy : "createdAt";
+    const sortOrder = sortType === "asc" ? 1 : -1;
+
+    // ✅ aggregation pipeline
+    const aggregate = Video.aggregate([
+        { $match: match },
+
+        // join owner
+        {
+            $lookup: {
+                from: "users",
+                localField: "owner",
+                foreignField: "_id",
+                as: "owner"
+            }
+        },
+
+        { $unwind: "$owner" },
+
+        // optional: select owner fields
+        {
+            $project: {
+                title: 1,
+                description: 1,
+                videoFile: 1,
+                thumbnail: 1,
+                views: 1,
+                duration: 1,
+                createdAt: 1,
+                owner: {
+                    _id: "$owner._id",
+                    username: "$owner.username",
+                    avatar: "$owner.avatar"
+                }
+            }
+        },
+
+        { $sort: { [sortField]: sortOrder } }
+    ]);
+
+    // ✅ paginate
+    const result = await Video.aggregatePaginate(aggregate, {
+        page: pageNumber,
+        limit: limitNumber
+    });
+
+    return res.status(200).json(
+        new apiResponse(
+            200,
+            result,
+            "Videos fetched successfully"
+        )
+    );
+});
 
 const publishAVideo = asyncHandler(async (req, res) => {
     const { title, description } = req.body
