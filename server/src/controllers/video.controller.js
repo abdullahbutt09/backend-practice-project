@@ -345,7 +345,7 @@ const deleteVideo = asyncHandler(async (req, res) => {
             deleteFromCloudinary(video.thumbnail?.publicId, "image")
         );
 
-            return Promise.all(deletes);
+            return Promise.allSettled(deletes);
         })
     );
 
@@ -358,9 +358,9 @@ const deleteVideo = asyncHandler(async (req, res) => {
         owner: user._id
     });
 
-    if(!deletedVideos)
+    if (deletedVideos.deletedCount === 0) 
     {
-        throw new apiError(404, "Videos not found or you are not the owner!");
+        throw new apiError(404, "No videos deleted!");
     }
     
     return res
