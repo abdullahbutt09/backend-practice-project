@@ -84,6 +84,25 @@ const getUserPlaylists = asyncHandler(async (req, res) => {
     {
         throw new apiError(400, "Not valid Object user id!");
     }
+
+    const playlists = await Playlist.find({
+        owner: userId
+    });
+
+    if (!playlists.length) 
+    {
+        throw new apiError(404, "No playlists found!");
+    }
+
+    return res
+    .status(200)
+    .json(
+        new apiResponse(
+            200,
+            playlists,
+            "User playlists fetched successfully"
+        )
+    )
 })
 
 const getPlaylistById = asyncHandler(async (req, res) => {
@@ -114,6 +133,25 @@ const getPlaylistById = asyncHandler(async (req, res) => {
     {
         throw new apiError(400, "Invalid playlist Id!");
     }
+
+    const playlist = await Playlist.findOne({
+        _id: playlistId,
+        owner: userId
+    }).populate("videos", ""); // 🔥 important
+
+    if (!playlist) {
+        throw new apiError(404, "Playlist not found or not authorized!");
+    }
+
+    return res
+    .status(200)
+    .json(
+        new apiResponse(
+            200, 
+            playlist, 
+            "Playlist fetched successfully"
+        )
+    );
 })
 
 const addVideoToPlaylist = asyncHandler(async (req, res) => {
