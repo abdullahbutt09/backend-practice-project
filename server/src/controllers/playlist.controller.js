@@ -358,7 +358,7 @@ const updatePlaylist = asyncHandler(async (req, res) => {
         throw new apiError(400, "Invalid playlist Id!");
     }
 
-    const updatedPlaylist = await Video.findOneAndUpdate(
+    const updatedPlaylist = await Playlist.findOneAndUpdate(
         {
             _id: playlistId,
             owner: userId
