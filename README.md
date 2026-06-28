@@ -1,4 +1,4 @@
-# 🚀 Backend Practice Project
+# 🚀 Stream-Core
 
 A production-style backend project built using Node.js, Express, and MongoDB.  
 This project demonstrates real-world backend concepts including authentication, playlist management, video handling, and dashboard analytics using aggregation pipelines.
@@ -74,10 +74,10 @@ src/
 
 ```bash
 # Clone repo
-git clone https://github.com/abdullahbutt09/backend-practice-project.git
+git clone https://github.com/abdullahbutt09/stream-core.git
 
 # Go into project
-cd backend-practice-project
+cd stream-core
 
 # Install dependencies
 npm install
