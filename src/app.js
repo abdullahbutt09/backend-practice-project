@@ -2,6 +2,12 @@ import express from 'express';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 
+import swaggerUi from "swagger-ui-express";
+import { readFileSync } from "fs";
+import { parse } from "yaml";
+import { fileURLToPath } from "url";
+import { dirname, join } from "path";
+
 const app = express();
 
 app.use(cors({
@@ -23,6 +29,12 @@ app.use(express.static("public"));
 app.use(cookieParser({
     //you can explore more options here https://www.npmjs.com/package/cookie-parser
 }))
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const swaggerDocument = parse(
+  readFileSync(join(__dirname, "./config/openapi.yaml"), "utf8")
+);
 
 // routes import
 
@@ -49,5 +61,7 @@ app.use("/api/v1/playlists", playlistRouter);
 app.use("/api/v1/dashboard", dashboardRouter)
 
 app.use("/api/v1/healthcheck", healthCheckRouter);
+
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 export default app;

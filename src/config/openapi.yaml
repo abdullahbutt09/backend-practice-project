@@ -1,0 +1,1576 @@
+openapi: 3.0.3
+
+info:
+  title: Stream-Core API
+  description: |
+    A production-style YouTube-like backend API.
+    - **Public** routes: Register, Login, Refresh Token
+    - **Protected** routes: Require a valid JWT Bearer token
+  version: 1.0.0
+  contact:
+    name: Abdullah Bin Mughira
+
+servers:
+  - url: http://localhost:8000/api/v1
+    description: Local Development Server
+
+# ─── Security ─────────────────────────────────────────────────────────────────
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+
+    # ── User ──────────────────────────────────────────────────────────────────
+    RegisterUserRequest:
+      type: object
+      required: [username, email, fullName, password, avatar]
+      properties:
+        username:
+          type: string
+          example: abdullah09
+        email:
+          type: string
+          format: email
+          example: abdullah@example.com
+        fullName:
+          type: string
+          example: Abdullah Bin Mughira
+        password:
+          type: string
+          minLength: 8
+          example: secret123
+        avatar:
+          type: string
+          format: binary
+          description: Avatar image file (multipart/form-data)
+        coverImage:
+          type: string
+          format: binary
+          description: Cover image file (optional, multipart/form-data)
+
+    LoginUserRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+          example: abdullah@example.com
+        password:
+          type: string
+          example: secret123
+
+    ChangePasswordRequest:
+      type: object
+      required: [oldPassword, newPassword]
+      properties:
+        oldPassword:
+          type: string
+          example: oldSecret123
+        newPassword:
+          type: string
+          example: newSecret456
+
+    UpdateAccountRequest:
+      type: object
+      properties:
+        fullName:
+          type: string
+          example: Abdullah Bin Mughira
+        email:
+          type: string
+          format: email
+          example: newemail@example.com
+
+    UserResponse:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 664abc123def456789012345
+        username:
+          type: string
+          example: abdullah09
+        email:
+          type: string
+          example: abdullah@example.com
+        fullName:
+          type: string
+          example: Abdullah Bin Mughira
+        avatar:
+          type: object
+          properties:
+            url:
+              type: string
+            publicId:
+              type: string
+        coverImage:
+          type: object
+          properties:
+            url:
+              type: string
+            publicId:
+              type: string
+        watchHistory:
+          type: array
+          items:
+            type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    # ── Video ─────────────────────────────────────────────────────────────────
+    PublishVideoRequest:
+      type: object
+      required: [title, video, thumbnail]
+      properties:
+        title:
+          type: string
+          example: My First Video
+        description:
+          type: string
+          example: This is a description of my first video
+        video:
+          type: string
+          format: binary
+          description: Video file (multipart/form-data)
+        thumbnail:
+          type: string
+          format: binary
+          description: Thumbnail image (multipart/form-data)
+
+    UpdateVideoRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          example: Updated Video Title
+        description:
+          type: string
+          example: Updated description
+
+    VideoResponse:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 664abc123def456789012346
+        title:
+          type: string
+          example: My First Video
+        description:
+          type: string
+          example: Video description here
+        videoFile:
+          type: object
+          properties:
+            url:
+              type: string
+            publicId:
+              type: string
+        thumbnail:
+          type: object
+          properties:
+            url:
+              type: string
+            publicId:
+              type: string
+        owner:
+          type: string
+          example: 664abc123def456789012345
+        views:
+          type: integer
+          example: 100
+        isPublished:
+          type: boolean
+          example: true
+        duration:
+          type: number
+          example: 120.5
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    # ── Tweet ─────────────────────────────────────────────────────────────────
+    CreateTweetRequest:
+      type: object
+      required: [content]
+      properties:
+        content:
+          type: string
+          example: This is my first tweet!
+
+    UpdateTweetRequest:
+      type: object
+      required: [content]
+      properties:
+        content:
+          type: string
+          example: Updated tweet content
+
+    TweetResponse:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 664abc123def456789012349
+        content:
+          type: string
+          example: This is my first tweet!
+        owner:
+          type: string
+          example: 664abc123def456789012345
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    # ── Comment ───────────────────────────────────────────────────────────────
+    AddCommentRequest:
+      type: object
+      required: [content]
+      properties:
+        content:
+          type: string
+          example: Great video!
+
+    UpdateCommentRequest:
+      type: object
+      required: [content]
+      properties:
+        content:
+          type: string
+          example: Updated comment content
+
+    CommentResponse:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 664abc123def456789012350
+        content:
+          type: string
+          example: Great video!
+        owner:
+          type: string
+          example: 664abc123def456789012345
+        video:
+          type: string
+          example: 664abc123def456789012346
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    # ── Playlist ──────────────────────────────────────────────────────────────
+    CreatePlaylistRequest:
+      type: object
+      required: [playlistName]
+      properties:
+        playlistName:
+          type: string
+          example: My Favourite Videos
+        playlistDescription:
+          type: string
+          example: A collection of my favourite videos
+
+    UpdatePlaylistRequest:
+      type: object
+      properties:
+        playlistName:
+          type: string
+          example: Updated Playlist Name
+        playlistDescription:
+          type: string
+          example: Updated description
+
+    PlaylistResponse:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 664abc123def456789012351
+        playlistName:
+          type: string
+          example: My Favourite Videos
+        playlistDescription:
+          type: string
+          example: A collection of my favourite videos
+        videos:
+          type: array
+          items:
+            type: string
+        owner:
+          type: string
+          example: 664abc123def456789012345
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    # ── Common ────────────────────────────────────────────────────────────────
+    SuccessResponse:
+      type: object
+      properties:
+        statusCode:
+          type: integer
+          example: 200
+        message:
+          type: string
+          example: Operation successful
+        data:
+          type: object
+        success:
+          type: boolean
+          example: true
+
+    ErrorResponse:
+      type: object
+      properties:
+        statusCode:
+          type: integer
+          example: 400
+        message:
+          type: string
+          example: Something went wrong
+        errors:
+          type: array
+          items:
+            type: string
+        success:
+          type: boolean
+          example: false
+
+  responses:
+    Unauthorized:
+      description: Unauthorized – JWT token missing or invalid
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    BadRequest:
+      description: Validation error or bad input
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+# ─── Tags ─────────────────────────────────────────────────────────────────────
+tags:
+  - name: Health
+    description: Server health check
+  - name: Users – Public
+    description: No authentication required
+  - name: Users – Protected
+    description: Requires valid JWT
+  - name: Videos
+    description: Requires valid JWT
+  - name: Tweets
+    description: Requires valid JWT
+  - name: Comments
+    description: Requires valid JWT
+  - name: Likes
+    description: Requires valid JWT
+  - name: Playlists
+    description: Requires valid JWT
+  - name: Subscriptions
+    description: Requires valid JWT
+  - name: Dashboard
+    description: Requires valid JWT – channel analytics
+
+# ─── Paths ────────────────────────────────────────────────────────────────────
+paths:
+
+  # ── Health ──────────────────────────────────────────────────────────────────
+  /healthcheck:
+    get:
+      tags: [Health]
+      summary: Health check
+      operationId: healthcheck
+      responses:
+        '200':
+          description: Server is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+
+  # ── Users – Public ──────────────────────────────────────────────────────────
+  /users/register:
+    post:
+      tags: [Users – Public]
+      summary: Register a new user
+      operationId: registerUser
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/RegisterUserRequest'
+      responses:
+        '201':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/UserResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /users/login:
+    post:
+      tags: [Users – Public]
+      summary: Login and receive access + refresh tokens
+      operationId: loginUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginUserRequest'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          user:
+                            $ref: '#/components/schemas/UserResponse'
+                          accessToken:
+                            type: string
+                          refreshToken:
+                            type: string
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /users/refresh-token:
+    post:
+      tags: [Users – Public]
+      summary: Refresh access token
+      operationId: refreshAccessToken
+      responses:
+        '200':
+          description: New access token issued
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # ── Users – Protected ───────────────────────────────────────────────────────
+  /users/logout:
+    post:
+      tags: [Users – Protected]
+      summary: Logout current user
+      operationId: logOutUser
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Logged out successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /users/change-password:
+    post:
+      tags: [Users – Protected]
+      summary: Change current user password
+      operationId: changeCurrentUserPassword
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangePasswordRequest'
+      responses:
+        '200':
+          description: Password changed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /users/get-current-user:
+    get:
+      tags: [Users – Protected]
+      summary: Get currently logged in user
+      operationId: getCurrentUser
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Current user data
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/UserResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /users/update-account:
+    patch:
+      tags: [Users – Protected]
+      summary: Update account details
+      operationId: upateAccountDetails
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAccountRequest'
+      responses:
+        '200':
+          description: Account updated successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/UserResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /users/change-avatar:
+    patch:
+      tags: [Users – Protected]
+      summary: Update user avatar
+      operationId: updateUserAvatar
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [avatar]
+              properties:
+                avatar:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Avatar updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /users/change-cover-image:
+    patch:
+      tags: [Users – Protected]
+      summary: Update user cover image
+      operationId: updateUserCoverImage
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [coverImage]
+              properties:
+                coverImage:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Cover image updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /users/c/{username}:
+    get:
+      tags: [Users – Protected]
+      summary: Get user channel profile by username
+      operationId: getUserChannelProfile
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+          example: abdullah09
+      responses:
+        '200':
+          description: Channel profile data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /users/history:
+    get:
+      tags: [Users – Protected]
+      summary: Get watch history of current user
+      operationId: getUserWatchHistory
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Watch history
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/VideoResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # ── Videos ──────────────────────────────────────────────────────────────────
+  /videos/upload-video:
+    post:
+      tags: [Videos]
+      summary: Upload a new video
+      operationId: publishAVideo
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PublishVideoRequest'
+      responses:
+        '201':
+          description: Video uploaded successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/VideoResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /videos/get-all-videos:
+    get:
+      tags: [Videos]
+      summary: Get all videos
+      operationId: getAllVideos
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of all videos
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/VideoResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /videos/v/{videoId}:
+    get:
+      tags: [Videos]
+      summary: Get a video by ID
+      operationId: getVideoById
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: videoId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: 664abc123def456789012346
+      responses:
+        '200':
+          description: Video details
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/VideoResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      tags: [Videos]
+      summary: Update video title or description
+      operationId: updateVideo
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: videoId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: 664abc123def456789012346
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateVideoRequest'
+      responses:
+        '200':
+          description: Video updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /videos/v/{videoId}/thumbnail:
+    patch:
+      tags: [Videos]
+      summary: Update video thumbnail
+      operationId: updateVideoThumbnail
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: videoId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: 664abc123def456789012346
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [thumbnail]
+              properties:
+                thumbnail:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Thumbnail updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /videos/v/{videoId}/publish:
+    patch:
+      tags: [Videos]
+      summary: Toggle video publish status
+      operationId: togglePublishStatus
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: videoId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: 664abc123def456789012346
+      responses:
+        '200':
+          description: Publish status toggled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /videos/delete-videos:
+    delete:
+      tags: [Videos]
+      summary: Delete a video
+      operationId: deleteVideo
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Video deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # ── Tweets ──────────────────────────────────────────────────────────────────
+  /tweets/create-tweet:
+    post:
+      tags: [Tweets]
+      summary: Create a new tweet
+      operationId: createTweet
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTweetRequest'
+      responses:
+        '201':
+          description: Tweet created successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/TweetResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /tweets/get-tweets:
+    get:
+      tags: [Tweets]
+      summary: Get all tweets of current user
+      operationId: getUserTweets
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of tweets
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/TweetResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /tweets/t/{tweetId}:
+    patch:
+      tags: [Tweets]
+      summary: Update a tweet
+      operationId: updateTweet
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: tweetId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: 664abc123def456789012349
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTweetRequest'
+      responses:
+        '200':
+          description: Tweet updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags: [Tweets]
+      summary: Delete a tweet
+      operationId: deleteTweet
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: tweetId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: 664abc123def456789012349
+      responses:
+        '200':
+          description: Tweet deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /tweets/delete-bulk-tweets:
+    delete:
+      tags: [Tweets]
+      summary: Bulk delete tweets
+      operationId: deleteBulk
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Tweets deleted in bulk
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # ── Comments ─────────────────────────────────────────────────────────────────
+  /comments/c/{videoId}:
+    get:
+      tags: [Comments]
+      summary: Get all comments for a video
+      operationId: getVideoComments
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: videoId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: 664abc123def456789012346
+      responses:
+        '200':
+          description: List of comments
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/CommentResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /comments/c/{videoId}/add-comment:
+    post:
+      tags: [Comments]
+      summary: Add a comment to a video
+      operationId: addComment
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: videoId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: 664abc123def456789012346
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddCommentRequest'
+      responses:
+        '201':
+          description: Comment added
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/CommentResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /comments/c/{commentId}/v/{videoId}/update-comment:
+    patch:
+      tags: [Comments]
+      summary: Update a comment
+      operationId: updateComment
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: commentId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: 664abc123def456789012350
+        - name: videoId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: 664abc123def456789012346
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCommentRequest'
+      responses:
+        '200':
+          description: Comment updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /comments/c/{commentId}/v/{videoId}/delete-comment:
+    delete:
+      tags: [Comments]
+      summary: Delete a comment
+      operationId: deleteComment
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: commentId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: 664abc123def456789012350
+        - name: videoId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: 664abc123def456789012346
+      responses:
+        '200':
+          description: Comment deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # ── Likes ────────────────────────────────────────────────────────────────────
+  /likes/l/{videoId}:
+    post:
+      tags: [Likes]
+      summary: Toggle like on a video
+      operationId: toggleVideoLike
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: videoId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: 664abc123def456789012346
+      responses:
+        '200':
+          description: Like toggled on video
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /likes/c/{commentId}:
+    post:
+      tags: [Likes]
+      summary: Toggle like on a comment
+      operationId: toggleCommentLike
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: commentId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: 664abc123def456789012350
+      responses:
+        '200':
+          description: Like toggled on comment
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /likes/t/{tweetId}:
+    post:
+      tags: [Likes]
+      summary: Toggle like on a tweet
+      operationId: toggleTweetLike
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: tweetId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: 664abc123def456789012349
+      responses:
+        '200':
+          description: Like toggled on tweet
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /likes/get-liked-videos:
+    get:
+      tags: [Likes]
+      summary: Get all videos liked by current user
+      operationId: getLikedVideos
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of liked videos
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/VideoResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # ── Playlists ────────────────────────────────────────────────────────────────
+  /playlists/create-playlist:
+    post:
+      tags: [Playlists]
+      summary: Create a new playlist
+      operationId: createPlaylist
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePlaylistRequest'
+      responses:
+        '201':
+          description: Playlist created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PlaylistResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /playlists/p/{playlistId}:
+    get:
+      tags: [Playlists]
+      summary: Get playlist by ID
+      operationId: getPlaylistById
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: playlistId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: 664abc123def456789012351
+      responses:
+        '200':
+          description: Playlist details with videos
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PlaylistResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      tags: [Playlists]
+      summary: Update playlist details
+      operationId: updatePlaylist
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: playlistId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: 664abc123def456789012351
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePlaylistRequest'
+      responses:
+        '200':
+          description: Playlist updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    delete:
+      tags: [Playlists]
+      summary: Delete a playlist
+      operationId: deletePlaylist
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: playlistId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: 664abc123def456789012351
+      responses:
+        '200':
+          description: Playlist deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /playlists/users/{userId}/playlists:
+    get:
+      tags: [Playlists]
+      summary: Get all playlists of a user
+      operationId: getUserPlaylists
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: 664abc123def456789012345
+      responses:
+        '200':
+          description: List of user playlists
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/PlaylistResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /playlists/p/{playlistId}/v/{videoId}:
+    put:
+      tags: [Playlists]
+      summary: Add video to playlist
+      operationId: addVideoToPlaylist
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: playlistId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: 664abc123def456789012351
+        - name: videoId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: 664abc123def456789012346
+      responses:
+        '200':
+          description: Video added to playlist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    delete:
+      tags: [Playlists]
+      summary: Remove video from playlist
+      operationId: removeVideoFromPlaylist
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: playlistId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: 664abc123def456789012351
+        - name: videoId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: 664abc123def456789012346
+      responses:
+        '200':
+          description: Video removed from playlist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # ── Subscriptions ────────────────────────────────────────────────────────────
+  /subscriptions/s/{channelId}:
+    post:
+      tags: [Subscriptions]
+      summary: Toggle subscription to a channel
+      operationId: toggleSubscription
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: channelId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: 664abc123def456789012345
+      responses:
+        '200':
+          description: Subscription toggled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    get:
+      tags: [Subscriptions]
+      summary: Get all subscribers of a channel
+      operationId: getUserChannelSubscribers
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: channelId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: 664abc123def456789012345
+      responses:
+        '200':
+          description: List of subscribers
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /subscriptions/s/{subscriberId}:
+    get:
+      tags: [Subscriptions]
+      summary: Get all channels a user is subscribed to
+      operationId: getSubscribedChannels
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: subscriberId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: 664abc123def456789012345
+      responses:
+        '200':
+          description: List of subscribed channels
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # ── Dashboard ────────────────────────────────────────────────────────────────
+  /dashboard/stats:
+    get:
+      tags: [Dashboard]
+      summary: Get channel stats (total views, subscribers, videos, likes)
+      operationId: getChannelStats
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Channel statistics
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          totalVideos:
+                            type: integer
+                            example: 12
+                          totalViews:
+                            type: integer
+                            example: 5400
+                          totalSubscribers:
+                            type: integer
+                            example: 230
+                          totalLikes:
+                            type: integer
+                            example: 870
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /dashboard/videos:
+    get:
+      tags: [Dashboard]
+      summary: Get all videos of current channel
+      operationId: getChannelVideos
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of channel videos
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/VideoResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'

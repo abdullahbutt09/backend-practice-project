@@ -252,32 +252,7 @@ Base URL: `http://localhost:8000/api/v1`
 
 ## 📖 API Documentation (Swagger UI)
 
-Install the required packages:
-
-```bash
-npm install swagger-ui-express yaml
-```
-
-Add this to `app.js`:
-
-```js
-import swaggerUi from "swagger-ui-express";
-import { readFileSync } from "fs";
-import { parse } from "yaml";
-import { fileURLToPath } from "url";
-import { dirname, join } from "path";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-const swaggerDocument = parse(
-  readFileSync(join(__dirname, "./config/openapi.yaml"), "utf8")
-);
-
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
-```
-
-Then open: `http://localhost:8000/api-docs`
+Open: `http://localhost:8000/api-docs`
 
 ---
 
